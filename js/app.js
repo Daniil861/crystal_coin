@@ -140,12 +140,15 @@
     function get_random(min, max) {
         return Math.floor(Math.random() * (max - min) + min);
     }
-    function add_money(count, block) {
+    function add_money(count, block, delay, delay_off) {
         setTimeout((() => {
             document.querySelector(block).textContent = +sessionStorage.getItem("money") + count;
             document.querySelector(block).classList.add("_anim-add-money");
             sessionStorage.setItem("money", +sessionStorage.getItem("money") + count);
-        }), 2e3);
+        }), delay);
+        setTimeout((() => {
+            document.querySelector(block).classList.remove("_anim-add-money");
+        }), delay_off);
     }
     function start_mini_game() {
         let number = get_numder();
@@ -179,47 +182,47 @@
         let bet = current_bet();
         if (number >= 0 && number <= 19) {
             create_image(3, 3, 3);
-            add_money(.01 * bet, ".check");
+            add_money(.01 * bet, ".check", 2500, 3500);
             write_count(.01 * bet, .01);
             add_border(1);
         } else if (number >= 20 && number <= 23) {
             create_image(3, 3, 4);
-            add_money(2 * bet, ".check");
+            add_money(2 * bet, ".check", 2500, 3500);
             write_count(2 * bet, 2);
             add_border(2);
         } else if (number >= 24 && number <= 26) {
             create_image(3, 3, 1);
-            add_money(5 * bet, ".check");
+            add_money(5 * bet, ".check", 2500, 3500);
             write_count(5 * bet, 5);
             add_border(3);
         } else if (number >= 27 && number <= 29) {
             create_image(3, 3, 5);
-            add_money(10 * bet, ".check");
+            add_money(10 * bet, ".check", 2500, 3500);
             write_count(10 * bet, 10);
             add_border(4);
         } else if (number >= 30 && number <= 31) {
             create_image(3, 3, 2);
-            add_money(15 * bet, ".check");
+            add_money(15 * bet, ".check", 2500, 3500);
             write_count(15 * bet, 15);
             add_border(5);
         } else if (number >= 32 && number <= 33) {
             create_image(3, 2, 1);
-            add_money(32 * bet, ".check");
+            add_money(32 * bet, ".check", 2500, 3500);
             write_count(32 * bet, 32);
             add_border(6);
         } else if (34 == number) {
             create_image(4, 2, 1);
-            add_money(42 * bet, ".check");
+            add_money(42 * bet, ".check", 2500, 3500);
             write_count(42 * bet, 42);
             add_border(7);
         } else if (35 == number) {
             create_image(1, 5, 4);
-            add_money(53 * bet, ".check");
+            add_money(53 * bet, ".check", 2500, 3500);
             write_count(53 * bet, 53);
             add_border(8);
         } else if (36 == number) {
             create_image(2, 5, 4);
-            add_money(60 * bet, ".check");
+            add_money(60 * bet, ".check", 2500, 3500);
             write_count(60 * bet, 60);
             add_border(9);
         }
@@ -263,13 +266,11 @@
         if (0 == +sessionStorage.getItem(`bonus-${bonus}`)) document.querySelector(`.bonuses__count_${bonus}`).textContent = "+"; else document.querySelector(`.bonuses__count_${bonus}`).textContent = sessionStorage.getItem(`bonus-${bonus}`);
     }
     let config = {
-        containerColorBG: "#353336",
-        contentColorBG: "#525053",
         countRows: 6,
         countCols: 5,
         offsetBorder: 10,
         borderRadius: 8,
-        gemSize: 64,
+        gemSize: 63,
         imagesCoin: [ "img/game/game-img-1.png", "img/game/game-img-2.png", "img/game/game-img-3.png", "img/game/game-img-4.png" ],
         gemClass: "gem",
         gemIdPrefix: "gem",
@@ -292,9 +293,57 @@
         score: document.createElement("div"),
         gems: new Array
     };
+    let crystall_cord_x = null;
+    let crystall_cord_y = null;
+    let count_move = 0;
+    document.addEventListener("touchstart", handleTouchStart, false);
+    document.addEventListener("touchend", handleTouchEnd, false);
+    document.addEventListener("touchmove", handleTouchMove, false);
     if (document.querySelector(".game")) initGame();
+    function handleTouchStart(e) {
+        let targetElement = e.target;
+        count_move = 0;
+        if (targetElement.closest(".gem")) {
+            let row = parseInt(targetElement.getAttribute("id").split("_")[1]);
+            let col = parseInt(targetElement.getAttribute("id").split("_")[2]);
+            player.selectedRow = row;
+            player.selectedCol = col;
+            crystall_cord_x = e.touches[0].clientX;
+            crystall_cord_y = e.touches[0].clientY;
+        }
+    }
+    function handleTouchEnd() {
+        setTimeout((() => {
+            player.selectedRow = -1;
+            player.selectedCol = -1;
+            console.log(player.selectedRow, player.selectedCol);
+        }), 500);
+    }
+    function handleTouchMove(e) {
+        if (count_move >= 1) return false;
+        count_move++;
+        let targetElement = e.target;
+        let crystall_cord_x2 = e.touches[0].clientX;
+        let crystall_cord_y2 = e.touches[0].clientY;
+        let xDiff = crystall_cord_x2 - crystall_cord_x;
+        let yDiff = crystall_cord_y2 - crystall_cord_y;
+        targetElement.closest(".gem");
+        let row = player.selectedRow;
+        let col = player.selectedCol;
+        if (Math.abs(xDiff) > Math.abs(yDiff)) if (xDiff > 0) check_collision(col + 1, row); else check_collision(col - 1, row); else if (yDiff > 0) check_collision(col, row + 1); else check_collision(col, row - 1);
+    }
+    function check_collision(col, row) {
+        if (1 == Math.abs(player.selectedRow - row) && player.selectedCol == col || 1 == Math.abs(player.selectedCol - col) && player.selectedRow == row) {
+            config.gameState = config.gameStates[1];
+            player.posX = col;
+            player.posY = row;
+            gemSwitch();
+        } else {
+            player.selectedRow = row;
+            player.selectedCol = col;
+        }
+    }
     function initGame() {
-        document.body.style.margin = "0px";
         createContentPage();
         createWrapper();
         createCursor();
@@ -302,17 +351,12 @@
         config.gameState = config.gameStates[0];
     }
     function createContentPage() {
-        components.content.style.padding = config.offsetBorder + "px";
         components.content.style.width = config.gemSize * config.countCols + 2 * config.offsetBorder + "px";
         components.content.style.height = config.gemSize * config.countRows + 2 * config.offsetBorder + "px";
         document.querySelector(".block-game__field").append(components.content);
     }
     function createWrapper() {
-        components.wrapper.style.position = "relative";
-        components.wrapper.style.height = "100%";
-        components.wrapper.addEventListener("click", (function(event) {
-            handlerTab(event, event.target);
-        }));
+        components.wrapper.classList.add("block-game__wrapper");
         components.content.append(components.wrapper);
     }
     function createCursor() {
@@ -326,31 +370,20 @@
         components.cursor.style.display = "none";
         components.wrapper.append(components.cursor);
     }
-    function cursorShow() {
-        components.cursor.style.display = "block";
-    }
-    function cursorHide() {
-        components.cursor.style.display = "none";
-    }
     function scoreInc(count) {
         if (count >= 4) count *= 2; else if (count >= 5) count = 2 * (count + 1); else if (count >= 6) count *= 2 * (count + 2);
         config.countScore += count;
-        add_money(count, ".check");
+        add_money(count, ".check", 500, 1500);
         console.log(config.countScore);
     }
     function createGem(t, l, row, col, img) {
-        let coin = document.createElement("div");
-        coin.classList.add(config.gemClass);
-        coin.id = config.gemIdPrefix + "_" + row + "_" + col;
-        coin.style.position = "absolute";
-        coin.style.top = t + "px";
-        coin.style.left = l + "px";
-        coin.style.width = config.gemSize + "px";
-        coin.style.height = config.gemSize + "px";
-        coin.style.border = "1p solid transparent";
-        coin.style.backgroundImage = "url(" + img + ")";
-        coin.style.backgroundSize = "100%";
-        components.wrapper.append(coin);
+        let crystall = document.createElement("div");
+        crystall.classList.add(config.gemClass);
+        crystall.id = `${config.gemIdPrefix}_${row}_${col}`;
+        crystall.style.top = `${t}px`;
+        crystall.style.left = `${l}px`;
+        crystall.style.backgroundImage = `url('${img}')`;
+        components.wrapper.append(crystall);
     }
     function createGrid() {
         for (let i = 0; i < config.countRows; i++) {
@@ -396,28 +429,6 @@
             tmp++;
         }
         return streak > 1;
-    }
-    function handlerTab(event, target) {
-        if (target.classList.contains(config.gemClass) && config.gameStates[0]) {
-            let row = parseInt(target.getAttribute("id").split("_")[1]);
-            let col = parseInt(target.getAttribute("id").split("_")[2]);
-            cursorShow();
-            components.cursor.style.top = parseInt(target.style.top) + "px";
-            components.cursor.style.left = parseInt(target.style.left) + "px";
-            if (-1 == player.selectedRow) {
-                player.selectedRow = row;
-                player.selectedCol = col;
-            } else if (1 == Math.abs(player.selectedRow - row) && player.selectedCol == col || 1 == Math.abs(player.selectedCol - col) && player.selectedRow == row) {
-                cursorHide();
-                config.gameState = config.gameStates[1];
-                player.posX = col;
-                player.posY = row;
-                gemSwitch();
-            } else {
-                player.selectedRow = row;
-                player.selectedCol = col;
-            }
-        }
     }
     function gemSwitch() {
         let yOffset = player.selectedRow - player.posY;
