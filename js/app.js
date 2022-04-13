@@ -46,74 +46,6 @@
     }
     const preloader = document.querySelector(".preloader");
     const wrapper = document.querySelector(".wrapper");
-    document.addEventListener("click", (e => {
-        let targetElement = e.target;
-        if (targetElement.closest(".acces-preloader__button")) {
-            sessionStorage.setItem("preloader", true);
-            preloader.classList.add("_hide");
-            wrapper.classList.add("_visible");
-        }
-        if (targetElement.closest(".footer__minus")) {
-            let current_bet = +sessionStorage.getItem("current-bet");
-            if (current_bet > 50) {
-                sessionStorage.setItem("current-bet", current_bet - 50);
-                document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
-            }
-        }
-        if (targetElement.closest(".footer__plus")) {
-            let current_bet = +sessionStorage.getItem("current-bet");
-            let current_bank = +sessionStorage.getItem("money");
-            if (current_bank > current_bet) {
-                sessionStorage.setItem("current-bet", current_bet + 50);
-                document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
-            }
-        }
-        if (targetElement.closest(".footer__button_bet")) if (+sessionStorage.getItem("money") >= +sessionStorage.getItem("current-bet")) {
-            add_remove_className(".footer__button_bet", "_hold");
-            add_remove_className(".footer__controls", "_hold");
-            delete_money(current_bet(), ".check");
-            remove_image();
-            setTimeout((() => {
-                start_mini_game();
-            }), 1e3);
-        } else no_money(".check");
-        if (targetElement.closest(".win__button_play")) {
-            document.querySelector(".win").classList.remove("_active");
-            remove_image();
-            add_remove_className(".footer__button_bet", "_hold");
-            add_remove_className(".footer__controls", "_hold");
-            remove_border();
-        }
-        if (document.querySelector(".shop") && document.querySelector(".shop").classList.contains("_active") && !targetElement.closest(".shop__body")) document.querySelector(".shop").classList.remove("_active");
-        if (targetElement.closest(".bonuses__count_bomb") || targetElement.closest(".bonuses__count_anvil") || targetElement.closest(".bonuses__count_circle")) document.querySelector(".shop").classList.add("_active");
-        if (targetElement.closest(".bonuses__button_bomb")) if (+sessionStorage.getItem("money") >= 3500) {
-            delete_money(3500, ".check");
-            sessionStorage.setItem("bonus-bomb", +sessionStorage.getItem("bonus-bomb") + 1);
-            write_bonus_count("bomb");
-        } else no_money(".check");
-        if (targetElement.closest(".bonuses__button_anvil")) if (+sessionStorage.getItem("money") >= 5500) {
-            delete_money(5500, ".check");
-            sessionStorage.setItem("bonus-anvil", +sessionStorage.getItem("bonus-anvil") + 1);
-            write_bonus_count("anvil");
-        } else no_money(".check");
-        if (targetElement.closest(".bonuses__button_circle")) if (+sessionStorage.getItem("money") >= 7500) {
-            delete_money(7500, ".check");
-            sessionStorage.setItem("bonus-circle", +sessionStorage.getItem("bonus-circle") + 1);
-            write_bonus_count("circle");
-        } else no_money(".check");
-        if (targetElement.closest(".bonuses__bomb") && !targetElement.closest(".bonuses__count_bomb")) if (0 != +sessionStorage.getItem("bonus-bomb")) {
-            sessionStorage.setItem("bonus-bomb", +sessionStorage.getItem("bonus-bomb") - 1);
-            write_bonus_count("bomb");
-        }
-        if (targetElement.closest(".bonuses__anvil") && !targetElement.closest(".bonuses__count_anvil")) if (0 != +sessionStorage.getItem("bonus-anvil")) {
-            sessionStorage.setItem("bonus-anvil", +sessionStorage.getItem("bonus-anvil") - 1);
-            write_bonus_count("anvil");
-        }
-        if (targetElement.closest(".bonuses__circle") && !targetElement.closest(".bonuses__count_circle")) if (0 != +sessionStorage.getItem("bonus-circle")) {
-            sessionStorage.setItem("bonus-circle", +sessionStorage.getItem("bonus-circle") - 1);
-            write_bonus_count("circle");
-        }
-    }));
     function add_remove_className(block, className) {
         if (document.querySelector(block).classList.contains(className)) document.querySelector(block).classList.remove(className); else document.querySelector(block).classList.add(className);
     }
@@ -277,7 +209,10 @@
         gameStates: [ "pick", "switch", "revert", "remove", "refill" ],
         gameState: "",
         movingItems: 0,
-        countScore: 0
+        countScore: 0,
+        count_move: 0,
+        crystall_cord_x: null,
+        crystall_cord_y: null
     };
     let player = {
         selectedRow: -1,
@@ -293,60 +228,48 @@
         score: document.createElement("div"),
         gems: new Array
     };
-    let crystall_cord_x = null;
-    let crystall_cord_y = null;
-    let count_move = 0;
     document.addEventListener("touchstart", handleTouchStart, false);
     document.addEventListener("touchend", handleTouchEnd, false);
     document.addEventListener("touchmove", handleTouchMove, false);
     if (document.querySelector(".game")) initGame();
     function handleTouchStart(e) {
         let targetElement = e.target;
-        count_move = 0;
+        config.count_move = 0;
         if (targetElement.closest(".gem")) {
             let row = parseInt(targetElement.getAttribute("id").split("_")[1]);
             let col = parseInt(targetElement.getAttribute("id").split("_")[2]);
             player.selectedRow = row;
             player.selectedCol = col;
-            crystall_cord_x = e.touches[0].clientX;
-            crystall_cord_y = e.touches[0].clientY;
+            config.crystall_cord_x = e.touches[0].clientX;
+            config.crystall_cord_y = e.touches[0].clientY;
         }
     }
     function handleTouchEnd() {
         setTimeout((() => {
             player.selectedRow = -1;
             player.selectedCol = -1;
-            console.log(player.selectedRow, player.selectedCol);
         }), 500);
     }
     function handleTouchMove(e) {
-        if (count_move >= 1) return false;
-        count_move++;
-        let targetElement = e.target;
+        if (config.count_move >= 1) return false;
+        config.count_move++;
         let crystall_cord_x2 = e.touches[0].clientX;
         let crystall_cord_y2 = e.touches[0].clientY;
-        let xDiff = crystall_cord_x2 - crystall_cord_x;
-        let yDiff = crystall_cord_y2 - crystall_cord_y;
-        targetElement.closest(".gem");
+        let xDiff = crystall_cord_x2 - config.crystall_cord_x;
+        let yDiff = crystall_cord_y2 - config.crystall_cord_y;
         let row = player.selectedRow;
         let col = player.selectedCol;
         if (Math.abs(xDiff) > Math.abs(yDiff)) if (xDiff > 0) check_collision(col + 1, row); else check_collision(col - 1, row); else if (yDiff > 0) check_collision(col, row + 1); else check_collision(col, row - 1);
     }
     function check_collision(col, row) {
-        if (1 == Math.abs(player.selectedRow - row) && player.selectedCol == col || 1 == Math.abs(player.selectedCol - col) && player.selectedRow == row) {
-            config.gameState = config.gameStates[1];
-            player.posX = col;
-            player.posY = row;
-            gemSwitch();
-        } else {
-            player.selectedRow = row;
-            player.selectedCol = col;
-        }
+        config.gameState = config.gameStates[1];
+        player.posX = col;
+        player.posY = row;
+        gemSwitch();
     }
     function initGame() {
         createContentPage();
         createWrapper();
-        createCursor();
         createGrid();
         config.gameState = config.gameStates[0];
     }
@@ -357,24 +280,22 @@
     }
     function createWrapper() {
         components.wrapper.classList.add("block-game__wrapper");
+        components.wrapper.classList.add("_pin");
         components.content.append(components.wrapper);
-    }
-    function createCursor() {
-        components.cursor.id = "marker";
-        components.cursor.style.width = config.gemSize + "px";
-        components.cursor.style.height = config.gemSize + "px";
-        components.cursor.style.border = "2px solid white";
-        components.cursor.style.borderRadius = "5px";
-        components.cursor.style.position = "absolute";
-        components.cursor.style.zIndex = "1";
-        components.cursor.style.display = "none";
-        components.wrapper.append(components.cursor);
     }
     function scoreInc(count) {
         if (count >= 4) count *= 2; else if (count >= 5) count = 2 * (count + 1); else if (count >= 6) count *= 2 * (count + 2);
         config.countScore += count;
         add_money(count, ".check", 500, 1500);
         console.log(config.countScore);
+        if (config.countScore >= 3e3) setTimeout((() => {
+            document.querySelector(".win").classList.add("_active");
+            write_level_win(1);
+        }), 1e3);
+    }
+    function write_level_win(level) {
+        document.querySelector(".win__level").textContent = level;
+        document.querySelector(".win__text_game").textContent = config.countScore;
     }
     function createGem(t, l, row, col, img) {
         let crystall = document.createElement("div");
@@ -597,6 +518,192 @@
             }
         }
     }
+    function get_bonus_bomb(block) {
+        config.movingItems++;
+        document.querySelector(".bonuses__bomb").classList.remove("_anim");
+        let row = parseInt(block.getAttribute("id").split("_")[1]);
+        let col = parseInt(block.getAttribute("id").split("_")[2]);
+        let top_elem_1_row, top_elem_1_col, top_elem_2_row, top_elem_2_col, bottom_elem_1_row, bottom_elem_1_col, bottom_elem_2_row, bottom_elem_2_col, right_elem_1_row, right_elem_1_col, right_elem_2_row, right_elem_2_col, left_elem_1_row, left_elem_1_col, left_elem_2_row, left_elem_2_col;
+        if (0 != row) {
+            top_elem_1_row = row - 1;
+            top_elem_1_col = col;
+        }
+        if (row >= 2) {
+            top_elem_2_row = row - 2;
+            top_elem_2_col = col;
+        }
+        if (row <= 4) {
+            bottom_elem_1_row = row + 1;
+            bottom_elem_1_col = col;
+        }
+        if (row <= 3) {
+            bottom_elem_2_row = row + 2;
+            bottom_elem_2_col = col;
+        }
+        if (col < 4) {
+            right_elem_1_row = row;
+            right_elem_1_col = col + 1;
+        }
+        if (col < 3) {
+            right_elem_2_row = row;
+            right_elem_2_col = col + 2;
+        }
+        if (0 != col) {
+            left_elem_1_row = row;
+            left_elem_1_col = col - 1;
+        }
+        if (col >= 2) {
+            left_elem_2_row = row;
+            left_elem_2_col = col - 2;
+        }
+        if (document.getElementById(`gem_${top_elem_1_row}_${top_elem_1_col}`)) {
+            removeGems(top_elem_1_row, top_elem_1_col);
+            document.getElementById(`gem_${top_elem_1_row}_${top_elem_1_col}`).remove();
+        }
+        if (document.getElementById(`gem_${top_elem_2_row}_${top_elem_2_col}`)) {
+            removeGems(top_elem_2_row, top_elem_2_col);
+            document.getElementById(`gem_${top_elem_2_row}_${top_elem_2_col}`).remove();
+        }
+        if (document.getElementById(`gem_${bottom_elem_1_row}_${bottom_elem_1_col}`)) {
+            removeGems(bottom_elem_1_row, bottom_elem_1_col);
+            document.getElementById(`gem_${bottom_elem_1_row}_${bottom_elem_1_col}`).remove();
+        }
+        if (document.getElementById(`gem_${bottom_elem_2_row}_${bottom_elem_2_col}`)) {
+            removeGems(bottom_elem_2_row, bottom_elem_2_col);
+            document.getElementById(`gem_${bottom_elem_2_row}_${bottom_elem_2_col}`).remove();
+        }
+        if (document.getElementById(`gem_${left_elem_1_row}_${left_elem_1_col}`)) {
+            removeGems(left_elem_1_row, left_elem_1_col);
+            document.getElementById(`gem_${left_elem_1_row}_${left_elem_1_col}`).remove();
+        }
+        if (document.getElementById(`gem_${left_elem_2_row}_${left_elem_2_col}`)) {
+            removeGems(left_elem_2_row, left_elem_2_col);
+            document.getElementById(`gem_${left_elem_2_row}_${left_elem_2_col}`).remove();
+        }
+        if (document.getElementById(`gem_${right_elem_1_row}_${right_elem_1_col}`)) {
+            removeGems(right_elem_1_row, right_elem_1_col);
+            document.getElementById(`gem_${right_elem_1_row}_${right_elem_1_col}`).remove();
+        }
+        if (document.getElementById(`gem_${right_elem_2_row}_${right_elem_2_col}`)) {
+            removeGems(right_elem_2_row, right_elem_2_col);
+            document.getElementById(`gem_${right_elem_2_row}_${right_elem_2_col}`).remove();
+        }
+        config.gameState = config.gameStates[3];
+        checkMoving();
+    }
+    function get_bonus_anvil(block) {
+        config.movingItems++;
+        document.querySelector(".bonuses__anvil").classList.remove("_anim");
+        let row = parseInt(block.getAttribute("id").split("_")[1]);
+        removeGems(row, 0);
+        document.getElementById(`gem_${row}_0`).remove();
+        removeGems(row, 1);
+        document.getElementById(`gem_${row}_1`).remove();
+        removeGems(row, 2);
+        document.getElementById(`gem_${row}_2`).remove();
+        removeGems(row, 3);
+        document.getElementById(`gem_${row}_3`).remove();
+        removeGems(row, 4);
+        document.getElementById(`gem_${row}_4`).remove();
+        config.gameState = config.gameStates[3];
+        checkMoving();
+    }
+    function get_bonus_circle(block) {
+        config.movingItems++;
+        document.querySelector(".bonuses__circle").classList.remove("_anim");
+        let row = parseInt(block.getAttribute("id").split("_")[1]);
+        let col = parseInt(block.getAttribute("id").split("_")[2]);
+        let number_image = components.gems[row][col];
+        for (let i = 0; i < components.gems.length; i++) for (let j = 0; j < components.gems[i].length; j++) if (components.gems[i][j] == number_image) {
+            removeGems(i, j);
+            document.getElementById(`gem_${i}_${j}`).remove();
+        }
+        config.gameState = config.gameStates[3];
+        checkMoving();
+    }
+    document.addEventListener("click", (e => {
+        let targetElement = e.target;
+        if (targetElement.closest(".acces-preloader__button")) {
+            sessionStorage.setItem("preloader", true);
+            preloader.classList.add("_hide");
+            wrapper.classList.add("_visible");
+        }
+        if (targetElement.closest(".footer__minus")) {
+            let current_bet = +sessionStorage.getItem("current-bet");
+            if (current_bet > 50) {
+                sessionStorage.setItem("current-bet", current_bet - 50);
+                document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
+            }
+        }
+        if (targetElement.closest(".footer__plus")) {
+            let current_bet = +sessionStorage.getItem("current-bet");
+            let current_bank = +sessionStorage.getItem("money");
+            if (current_bank > current_bet) {
+                sessionStorage.setItem("current-bet", current_bet + 50);
+                document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
+            }
+        }
+        if (targetElement.closest(".footer__button_bet")) if (+sessionStorage.getItem("money") >= +sessionStorage.getItem("current-bet")) {
+            add_remove_className(".footer__button_bet", "_hold");
+            add_remove_className(".footer__controls", "_hold");
+            delete_money(current_bet(), ".check");
+            remove_image();
+            setTimeout((() => {
+                start_mini_game();
+            }), 1e3);
+        } else no_money(".check");
+        if (targetElement.closest(".win__button_play")) {
+            document.querySelector(".win").classList.remove("_active");
+            remove_image();
+            add_remove_className(".footer__button_bet", "_hold");
+            add_remove_className(".footer__controls", "_hold");
+            remove_border();
+        }
+        if (document.querySelector(".shop") && document.querySelector(".shop").classList.contains("_active") && !targetElement.closest(".shop__body")) document.querySelector(".shop").classList.remove("_active");
+        if (targetElement.closest(".bonuses__count_bomb") || targetElement.closest(".bonuses__count_anvil") || targetElement.closest(".bonuses__count_circle")) document.querySelector(".shop").classList.add("_active");
+        if (targetElement.closest(".bonuses__button_bomb")) if (+sessionStorage.getItem("money") >= 3500) {
+            delete_money(3500, ".check");
+            sessionStorage.setItem("bonus-bomb", +sessionStorage.getItem("bonus-bomb") + 1);
+            write_bonus_count("bomb");
+        } else no_money(".check");
+        if (targetElement.closest(".bonuses__button_anvil")) if (+sessionStorage.getItem("money") >= 5500) {
+            delete_money(5500, ".check");
+            sessionStorage.setItem("bonus-anvil", +sessionStorage.getItem("bonus-anvil") + 1);
+            write_bonus_count("anvil");
+        } else no_money(".check");
+        if (targetElement.closest(".bonuses__button_circle")) if (+sessionStorage.getItem("money") >= 7500) {
+            delete_money(7500, ".check");
+            sessionStorage.setItem("bonus-circle", +sessionStorage.getItem("bonus-circle") + 1);
+            write_bonus_count("circle");
+        } else no_money(".check");
+        if (targetElement.closest(".bonuses__bomb") && !targetElement.closest(".bonuses__count_bomb")) if (0 != +sessionStorage.getItem("bonus-bomb")) {
+            sessionStorage.setItem("bonus-bomb", +sessionStorage.getItem("bonus-bomb") - 1);
+            write_bonus_count("bomb");
+            targetElement.closest(".bonuses__bomb").classList.add("_anim");
+        }
+        if (targetElement.closest(".bonuses__anvil") && !targetElement.closest(".bonuses__count_anvil")) if (0 != +sessionStorage.getItem("bonus-anvil")) {
+            sessionStorage.setItem("bonus-anvil", +sessionStorage.getItem("bonus-anvil") - 1);
+            write_bonus_count("anvil");
+            targetElement.closest(".bonuses__anvil").classList.add("_anim");
+        }
+        if (targetElement.closest(".bonuses__circle") && !targetElement.closest(".bonuses__count_circle")) if (0 != +sessionStorage.getItem("bonus-circle")) {
+            sessionStorage.setItem("bonus-circle", +sessionStorage.getItem("bonus-circle") - 1);
+            write_bonus_count("circle");
+            targetElement.closest(".bonuses__circle").classList.add("_anim");
+        }
+        if (targetElement.closest(".block-game__wrapper") && document.querySelector(".bonuses__bomb").classList.contains("_anim")) {
+            let elem = targetElement.closest(".gem");
+            get_bonus_bomb(elem);
+        }
+        if (targetElement.closest(".block-game__wrapper") && document.querySelector(".bonuses__anvil").classList.contains("_anim")) {
+            let elem = targetElement.closest(".gem");
+            get_bonus_anvil(elem);
+        }
+        if (targetElement.closest(".block-game__wrapper") && document.querySelector(".bonuses__circle").classList.contains("_anim")) {
+            let elem = targetElement.closest(".gem");
+            get_bonus_circle(elem);
+        }
+    }));
     window["FLS"] = true;
     isWebp();
 })();
