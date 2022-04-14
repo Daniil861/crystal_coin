@@ -46,6 +46,8 @@
     }
     const preloader = document.querySelector(".preloader");
     const wrapper = document.querySelector(".wrapper");
+    document.documentElement.clientWidth;
+    const window_height = document.documentElement.clientHeight;
     function add_remove_className(block, className) {
         if (document.querySelector(block).classList.contains(className)) document.querySelector(block).classList.remove(className); else document.querySelector(block).classList.add(className);
     }
@@ -201,10 +203,11 @@
         countRows: 6,
         countCols: 5,
         offsetBorder: 10,
-        borderRadius: 8,
         gemSize: 63,
         imagesCoin: [ "img/game/game-img-1.png", "img/game/game-img-2.png", "img/game/game-img-3.png", "img/game/game-img-4.png" ],
         gemClass: "gem",
+        gemClassHeart: "gem-heart",
+        gemClassSnow: "gem-snow",
         gemIdPrefix: "gem",
         gameStates: [ "pick", "switch", "revert", "remove", "refill" ],
         gameState: "",
@@ -220,6 +223,8 @@
         posX: "",
         posY: ""
     };
+    let delete_heart_count = 0;
+    if (window_height <= 710) config.gemSize = 50;
     let components = {
         container: document.createElement("div"),
         content: document.createElement("div"),
@@ -231,11 +236,20 @@
     document.addEventListener("touchstart", handleTouchStart, false);
     document.addEventListener("touchend", handleTouchEnd, false);
     document.addEventListener("touchmove", handleTouchMove, false);
-    if (document.querySelector(".game")) initGame();
+    if (document.querySelector(".game")) {
+        if (!sessionStorage.getItem("active-game-level")) sessionStorage.setItem("active-game-level", 1); else if (2 == +sessionStorage.getItem("active-game-level")) document.querySelector(".footer-game__lable").textContent = "Level 2"; else if (3 == +sessionStorage.getItem("active-game-level")) document.querySelector(".footer-game__lable").textContent = "Level 3";
+        if (sessionStorage.getItem("game-level-2")) document.querySelector(".levels__level_two").classList.remove("_not-active");
+        if (sessionStorage.getItem("game-level-3")) document.querySelector(".levels__level_three").classList.remove("_not-active");
+        document.body.classList.add("_hold");
+        initGame();
+        sessionStorage.setItem("hearts", 0);
+        document.querySelector(".header-game__count-heart").textContent = sessionStorage.getItem("hearts");
+        config.countScore = 0;
+    }
     function handleTouchStart(e) {
         let targetElement = e.target;
         config.count_move = 0;
-        if (targetElement.closest(".gem")) {
+        if (targetElement.closest(".gem") || targetElement.closest(".gem-heart")) {
             let row = parseInt(targetElement.getAttribute("id").split("_")[1]);
             let col = parseInt(targetElement.getAttribute("id").split("_")[2]);
             player.selectedRow = row;
@@ -252,14 +266,16 @@
     }
     function handleTouchMove(e) {
         if (config.count_move >= 1) return false;
-        config.count_move++;
-        let crystall_cord_x2 = e.touches[0].clientX;
-        let crystall_cord_y2 = e.touches[0].clientY;
-        let xDiff = crystall_cord_x2 - config.crystall_cord_x;
-        let yDiff = crystall_cord_y2 - config.crystall_cord_y;
-        let row = player.selectedRow;
-        let col = player.selectedCol;
-        if (Math.abs(xDiff) > Math.abs(yDiff)) if (xDiff > 0) check_collision(col + 1, row); else check_collision(col - 1, row); else if (yDiff > 0) check_collision(col, row + 1); else check_collision(col, row - 1);
+        if (e.target.closest(".block-game__wrapper")) {
+            config.count_move++;
+            let crystall_cord_x2 = e.touches[0].clientX;
+            let crystall_cord_y2 = e.touches[0].clientY;
+            let xDiff = crystall_cord_x2 - config.crystall_cord_x;
+            let yDiff = crystall_cord_y2 - config.crystall_cord_y;
+            let row = player.selectedRow;
+            let col = player.selectedCol;
+            if (Math.abs(xDiff) > Math.abs(yDiff)) if (xDiff > 0) check_collision(col + 1, row); else check_collision(col - 1, row); else if (yDiff > 0) check_collision(col, row + 1); else check_collision(col, row - 1);
+        }
     }
     function check_collision(col, row) {
         config.gameState = config.gameStates[1];
@@ -274,23 +290,39 @@
         config.gameState = config.gameStates[0];
     }
     function createContentPage() {
+        components.content.style.padding = config.offsetBorder + "px";
         components.content.style.width = config.gemSize * config.countCols + 2 * config.offsetBorder + "px";
         components.content.style.height = config.gemSize * config.countRows + 2 * config.offsetBorder + "px";
         document.querySelector(".block-game__field").append(components.content);
     }
     function createWrapper() {
         components.wrapper.classList.add("block-game__wrapper");
-        components.wrapper.classList.add("_pin");
         components.content.append(components.wrapper);
     }
     function scoreInc(count) {
         if (count >= 4) count *= 2; else if (count >= 5) count = 2 * (count + 1); else if (count >= 6) count *= 2 * (count + 2);
         config.countScore += count;
         add_money(count, ".check", 500, 1500);
-        console.log(config.countScore);
-        if (config.countScore >= 3e3) setTimeout((() => {
+        check_game_over();
+    }
+    function check_game_over() {
+        if (1 == +sessionStorage.getItem("active-game-level") && config.countScore >= 2e3) {
+            sessionStorage.setItem("game-level-2", true);
+            document.querySelector(".levels__level_two").classList.remove("_not-active");
+            setTimeout((() => {
+                document.querySelector(".win").classList.add("_active");
+                write_level_win(1);
+            }), 1e3);
+        } else if (2 == +sessionStorage.getItem("active-game-level") && config.countScore >= 3e3 && +sessionStorage.getItem("hearts") >= 1) {
+            sessionStorage.setItem("game-level-3", true);
+            document.querySelector(".levels__level_three").classList.remove("_not-active");
+            setTimeout((() => {
+                document.querySelector(".win").classList.add("_active");
+                write_level_win(2);
+            }), 1e3);
+        } else if (3 == +sessionStorage.getItem("active-game-level")) if (config.countScore >= 5e3 && +sessionStorage.getItem("hearts") >= 1) setTimeout((() => {
             document.querySelector(".win").classList.add("_active");
-            write_level_win(1);
+            write_level_win(3);
         }), 1e3);
     }
     function write_level_win(level) {
@@ -306,6 +338,22 @@
         crystall.style.backgroundImage = `url('${img}')`;
         components.wrapper.append(crystall);
     }
+    function createGemHeart(t, l, row, col) {
+        let crystall = document.createElement("div");
+        crystall.classList.add(config.gemClassHeart);
+        crystall.id = `${config.gemIdPrefix}_${row}_${col}`;
+        crystall.style.top = `${t}px`;
+        crystall.style.left = `${l}px`;
+        components.wrapper.append(crystall);
+    }
+    function createGemSnow(t, l, row, col) {
+        let crystall = document.createElement("div");
+        crystall.classList.add(config.gemClassSnow);
+        crystall.id = `${config.gemIdPrefix}_${row}_${col}`;
+        crystall.style.top = `${t}px`;
+        crystall.style.left = `${l}px`;
+        components.wrapper.append(crystall);
+    }
     function createGrid() {
         for (let i = 0; i < config.countRows; i++) {
             components.gems[i] = new Array;
@@ -313,98 +361,128 @@
         }
         for (let i = 0; i < config.countRows; i++) for (let j = 0; j < config.countCols; j++) {
             do {
-                components.gems[i][j] = Math.floor(Math.random() * (3 - 0) + 0);
+                if (1 == +sessionStorage.getItem("active-game-level")) if (2 == i && 0 == j) components.gems[i][j] = 5; else if (2 == i && 4 == j) components.gems[i][j] = 5; else components.gems[i][j] = Math.floor(Math.random() * (3 - 0) + 0); else if (2 == +sessionStorage.getItem("active-game-level")) if (0 == i && 2 == j) components.gems[i][j] = 4; else if (2 == i && 4 == j) components.gems[i][j] = 5; else components.gems[i][j] = Math.floor(Math.random() * (3 - 0) + 0); else if (3 == +sessionStorage.getItem("active-game-level")) if (0 == i && 2 == j) components.gems[i][j] = 4; else if (2 == i && 2 == j) components.gems[i][j] = 5; else if (2 == i && 4 == j) components.gems[i][j] = 5; else if (3 == i && 0 == j) components.gems[i][j] = 5; else components.gems[i][j] = Math.floor(Math.random() * (3 - 0) + 0);
             } while (isStreak(i, j));
-            createGem(i * config.gemSize, j * config.gemSize, i, j, config.imagesCoin[components.gems[i][j]]);
+            if (1 == +sessionStorage.getItem("active-game-level")) if (2 == i && 0 == j) createGemSnow(2 * config.gemSize, 0 * config.gemSize, 2, 0); else if (2 == i && 4 == j) createGemSnow(2 * config.gemSize, 4 * config.gemSize, 2, 4); else createGem(i * config.gemSize, j * config.gemSize, i, j, config.imagesCoin[components.gems[i][j]]); else if (2 == +sessionStorage.getItem("active-game-level")) if (0 == i && 2 == j) createGemHeart(0 * config.gemSize, 2 * config.gemSize, 0, 2); else if (2 == i && 4 == j) createGemSnow(2 * config.gemSize, 4 * config.gemSize, 2, 4); else createGem(i * config.gemSize, j * config.gemSize, i, j, config.imagesCoin[components.gems[i][j]]); else if (3 == +sessionStorage.getItem("active-game-level")) if (0 == i && 2 == j) createGemHeart(0 * config.gemSize, 2 * config.gemSize, 0, 2); else if (2 == i && 2 == j) createGemSnow(2 * config.gemSize, 2 * config.gemSize, 2, 2); else if (2 == i && 4 == j) createGemSnow(2 * config.gemSize, 4 * config.gemSize, 2, 4); else if (3 == i && 0 == j) createGemSnow(3 * config.gemSize, 0 * config.gemSize, 3, 0); else createGem(i * config.gemSize, j * config.gemSize, i, j, config.imagesCoin[components.gems[i][j]]);
         }
     }
     function isStreak(row, col) {
         return isVerticalStreak(row, col) || isHorizontalStreak(row, col);
     }
     function isVerticalStreak(row, col) {
-        let gemValue = components.gems[row][col];
-        let streak = 0;
-        let tmp = row;
-        while (tmp > 0 && components.gems[tmp - 1][col] == gemValue) {
-            streak++;
-            tmp--;
-        }
-        tmp = row;
-        while (tmp < config.countRows - 1 && components.gems[tmp + 1][col] == gemValue) {
-            streak++;
-            tmp++;
-        }
-        return streak > 1;
+        if (-1 != row && -1 != col) {
+            let gemValue = components.gems[row][col];
+            let streak = 0;
+            let tmp = row;
+            while (tmp > 0 && components.gems[tmp - 1][col] == gemValue) {
+                streak++;
+                tmp--;
+            }
+            tmp = row;
+            while (tmp < config.countRows - 1 && components.gems[tmp + 1][col] == gemValue) {
+                streak++;
+                tmp++;
+            }
+            return streak > 1;
+        } else return false;
     }
     function isHorizontalStreak(row, col) {
-        let gemValue = components.gems[row][col];
-        let streak = 0;
-        let tmp = col;
-        while (tmp > 0 && components.gems[row][tmp - 1] == gemValue) {
-            streak++;
-            tmp--;
-        }
-        tmp = col;
-        while (tmp < config.countCols - 1 && components.gems[row][tmp + 1] == gemValue) {
-            streak++;
-            tmp++;
-        }
-        return streak > 1;
+        if (-1 != row && -1 != col) {
+            let gemValue = components.gems[row][col];
+            let streak = 0;
+            let tmp = col;
+            while (tmp > 0 && components.gems[row][tmp - 1] == gemValue) {
+                streak++;
+                tmp--;
+            }
+            tmp = col;
+            while (tmp < config.countCols - 1 && components.gems[row][tmp + 1] == gemValue) {
+                streak++;
+                tmp++;
+            }
+            return streak > 1;
+        } else return false;
     }
     function gemSwitch() {
-        let yOffset = player.selectedRow - player.posY;
-        let xOffset = player.selectedCol - player.posX;
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).classList.add("switch");
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).setAttribute("dir", "-1");
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).classList.add("switch");
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).setAttribute("dir", "1");
-        $(".switch").each((function() {
-            config.movingItems++;
-            $(this).animate({
-                left: "+=" + xOffset * config.gemSize * $(this).attr("dir"),
-                top: "+=" + yOffset * config.gemSize * $(this).attr("dir")
-            }, {
-                duration: 250,
-                complete: function() {
-                    checkMoving();
-                }
-            });
-            $(this).removeClass("switch");
-        }));
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).setAttribute("id", "temp");
-        document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).setAttribute("id", config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol);
-        document.querySelector("#temp").setAttribute("id", config.gemIdPrefix + "_" + player.posY + "_" + player.posX);
-        let temp = components.gems[player.selectedRow][player.selectedCol];
-        components.gems[player.selectedRow][player.selectedCol] = components.gems[player.posY][player.posX];
-        components.gems[player.posY][player.posX] = temp;
+        if (player.selectedRow >= 0 && player.selectedCol >= 0 && player.posY >= 0 && player.posX >= 0 && 5 != components.gems[player.posY][player.posX]) {
+            let yOffset = player.selectedRow - player.posY;
+            let xOffset = player.selectedCol - player.posX;
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).classList.add("switch");
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).setAttribute("dir", "-1");
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).classList.add("switch");
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).setAttribute("dir", "1");
+            $(".switch").each((function() {
+                config.movingItems++;
+                $(this).animate({
+                    left: "+=" + xOffset * config.gemSize * $(this).attr("dir"),
+                    top: "+=" + yOffset * config.gemSize * $(this).attr("dir")
+                }, {
+                    duration: 250,
+                    complete: function() {
+                        checkMoving();
+                    }
+                });
+                $(this).removeClass("switch");
+            }));
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol).setAttribute("id", "temp");
+            document.querySelector("#" + config.gemIdPrefix + "_" + player.posY + "_" + player.posX).setAttribute("id", config.gemIdPrefix + "_" + player.selectedRow + "_" + player.selectedCol);
+            document.querySelector("#temp").setAttribute("id", config.gemIdPrefix + "_" + player.posY + "_" + player.posX);
+            let temp = components.gems[player.selectedRow][player.selectedCol];
+            components.gems[player.selectedRow][player.selectedCol] = components.gems[player.posY][player.posX];
+            components.gems[player.posY][player.posX] = temp;
+        } else return false;
     }
     function checkMoving() {
         config.movingItems--;
-        if (0 == config.movingItems) switch (config.gameState) {
-          case config.gameStates[1]:
-          case config.gameStates[2]:
-            if (!isStreak(player.selectedRow, player.selectedCol) && !isStreak(player.posY, player.posX)) if (config.gameState != config.gameStates[2]) {
-                config.gameState = config.gameStates[2];
-                gemSwitch();
-            } else {
-                config.gameState = config.gameStates[0];
-                player.selectedRow = -1;
-                player.selectedCol = -1;
-            } else {
-                config.gameState = config.gameStates[3];
-                if (isStreak(player.selectedRow, player.selectedCol)) removeGems(player.selectedRow, player.selectedCol);
-                if (isStreak(player.posY, player.posX)) removeGems(player.posY, player.posX);
-                gemFade();
+        if (0 == config.movingItems) {
+            switch (config.gameState) {
+              case config.gameStates[1]:
+              case config.gameStates[2]:
+                if (!isStreak(player.selectedRow, player.selectedCol) && !isStreak(player.posY, player.posX)) {
+                    if (player.selectedRow >= 0 && player.selectedCol >= 0 && player.posY >= 0 && player.posX >= 0 && 4 != components.gems[player.posY][player.posX]) if (config.gameState != config.gameStates[2]) {
+                        config.gameState = config.gameStates[2];
+                        gemSwitch();
+                    } else {
+                        config.gameState = config.gameStates[0];
+                        player.selectedRow = -1;
+                        player.selectedCol = -1;
+                    }
+                } else {
+                    config.gameState = config.gameStates[3];
+                    if (isStreak(player.selectedRow, player.selectedCol)) removeGems(player.selectedRow, player.selectedCol);
+                    if (isStreak(player.posY, player.posX)) removeGems(player.posY, player.posX);
+                    gemFade();
+                }
+                break;
+
+              case config.gameStates[3]:
+                checkFalling();
+                break;
+
+              case config.gameStates[4]:
+                placeNewGems();
+                break;
             }
-            break;
-
-          case config.gameStates[3]:
-            checkFalling();
-            break;
-
-          case config.gameStates[4]:
-            placeNewGems();
-            break;
+            if (0 == delete_heart_count) find_and_delete_heart();
+        }
+    }
+    function find_and_delete_heart() {
+        if (-1 != components.gems[5].indexOf(4)) {
+            delete_heart_count++;
+            config.movingItems++;
+            document.querySelector(`.gem-heart`).classList.add("_anim");
+            setTimeout((() => {
+                document.querySelector(`.gem-heart`).remove();
+                let number = components.gems[5].indexOf(4);
+                components.gems[5][number] = Math.floor(Math.random() * (3 - 0) + 0);
+                config.gameState = config.gameStates[3];
+                createGem(5 * config.gemSize, number * config.gemSize, 5, number, config.imagesCoin[components.gems[5][number]]);
+                checkMoving();
+            }), 500);
+            if (sessionStorage.getItem("hearts")) sessionStorage.setItem("hearts", +sessionStorage.getItem("hearts") + 1); else sessionStorage.setItem("hearts", 1);
+            setTimeout((() => {
+                document.querySelector(".header-game__count-heart").textContent = sessionStorage.getItem("hearts");
+            }), 1e3);
         }
     }
     function removeGems(row, col) {
@@ -652,6 +730,11 @@
                 start_mini_game();
             }), 1e3);
         } else no_money(".check");
+        if (targetElement.closest(".header-game__button-home") || targetElement.closest(".header__button-home")) {
+            sessionStorage.removeItem("hearts");
+            sessionStorage.removeItem("current-bet");
+            sessionStorage.removeItem("active-game-level");
+        }
         if (targetElement.closest(".win__button_play")) {
             document.querySelector(".win").classList.remove("_active");
             remove_image();
@@ -659,6 +742,7 @@
             add_remove_className(".footer__controls", "_hold");
             remove_border();
         }
+        if (targetElement.closest(".win__button_home")) sessionStorage.removeItem("current-bet");
         if (document.querySelector(".shop") && document.querySelector(".shop").classList.contains("_active") && !targetElement.closest(".shop__body")) document.querySelector(".shop").classList.remove("_active");
         if (targetElement.closest(".bonuses__count_bomb") || targetElement.closest(".bonuses__count_anvil") || targetElement.closest(".bonuses__count_circle")) document.querySelector(".shop").classList.add("_active");
         if (targetElement.closest(".bonuses__button_bomb")) if (+sessionStorage.getItem("money") >= 3500) {
@@ -702,6 +786,75 @@
         if (targetElement.closest(".block-game__wrapper") && document.querySelector(".bonuses__circle").classList.contains("_anim")) {
             let elem = targetElement.closest(".gem");
             get_bonus_circle(elem);
+        }
+        if (document.querySelector(".levels") && document.querySelector(".levels").classList.contains("_active") && !targetElement.closest(".levels__body")) document.querySelector(".levels").classList.remove("_active");
+        if (targetElement.closest(".footer-game__lable")) {
+            if (sessionStorage.getItem("game-level-2")) document.querySelector(".levels__level_two").classList.remove("_not-active"); else if (sessionStorage.getItem("game-level-3")) document.querySelector(".levels__level_three").classList.remove("_not-active");
+            document.querySelector(".levels").classList.add("_active");
+        }
+        if (targetElement.closest(".levels__level_one")) {
+            sessionStorage.setItem("active-game-level", 1);
+            delete components.gems;
+            document.querySelectorAll(".gem").forEach((el => el.remove()));
+            if (document.querySelector(".gem-heart")) document.querySelector(".gem-heart").remove();
+            document.querySelectorAll(".gem-snow").forEach((el => el.remove()));
+            document.querySelector(".block-game__wrapper").remove();
+            components.gems = [];
+            setTimeout((() => {
+                createWrapper();
+                createGrid();
+            }), 500);
+            document.querySelector(".levels").classList.remove("_active");
+            config.countScore = 0;
+            sessionStorage.setItem("hearts", 0);
+            document.querySelector(".footer-game__lable").textContent = "Level 1";
+        }
+        if (targetElement.closest(".levels__level_two") && sessionStorage.getItem("game-level-2")) {
+            sessionStorage.setItem("active-game-level", 2);
+            delete components.gems;
+            document.querySelectorAll(".gem").forEach((el => el.remove()));
+            if (document.querySelector(".gem-heart")) document.querySelector(".gem-heart").remove();
+            document.querySelectorAll(".gem-snow").forEach((el => el.remove()));
+            document.querySelector(".block-game__wrapper").remove();
+            components.gems = [];
+            setTimeout((() => {
+                createWrapper();
+                createGrid();
+            }), 500);
+            document.querySelector(".levels").classList.remove("_active");
+            config.countScore = 0;
+            sessionStorage.setItem("hearts", 0);
+            document.querySelector(".footer-game__lable").textContent = "Level 2";
+        }
+        if (targetElement.closest(".levels__level_three") && sessionStorage.getItem("game-level-3")) {
+            sessionStorage.setItem("active-game-level", 3);
+            delete components.gems;
+            document.querySelectorAll(".gem").forEach((el => el.remove()));
+            if (document.querySelector(".gem-heart")) document.querySelector(".gem-heart").remove();
+            document.querySelectorAll(".gem-snow").forEach((el => el.remove()));
+            document.querySelector(".block-game__wrapper").remove();
+            components.gems = [];
+            setTimeout((() => {
+                createWrapper();
+                createGrid();
+            }), 500);
+            document.querySelector(".levels").classList.remove("_active");
+            config.countScore = 0;
+            sessionStorage.setItem("hearts", 0);
+            document.querySelector(".footer-game__lable").textContent = "Level 3";
+        }
+        if (targetElement.closest(".win__button_levels")) {
+            document.querySelector(".win").classList.remove("_active");
+            setTimeout((() => {
+                document.querySelector(".levels").classList.add("_active");
+                config.countScore = 0;
+                sessionStorage.setItem("hearts", 0);
+            }), 500);
+        }
+        if (targetElement.closest(".win__button_game")) {
+            document.querySelector(".win").classList.remove("_active");
+            config.countScore = 0;
+            sessionStorage.setItem("hearts", 0);
         }
     }));
     window["FLS"] = true;
