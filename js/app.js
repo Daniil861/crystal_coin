@@ -41,8 +41,8 @@
         write_bonus_count("circle");
     }
     if (document.querySelector(".mini-game")) {
-        document.querySelector(".footer__coins").textContent = 50;
-        sessionStorage.setItem("current-bet", 50);
+        document.querySelector(".footer__coins").textContent = 0;
+        sessionStorage.setItem("current-bet", 0);
     }
     const preloader = document.querySelector(".preloader");
     const wrapper = document.querySelector(".wrapper");
@@ -194,6 +194,14 @@
             if (document.querySelector(".crystalls__item_3").classList.contains("_bg-3")) document.querySelector(".crystalls__item_3").classList.remove("_bg-3");
             if (document.querySelector(".crystalls__item_3").classList.contains("_bg-4")) document.querySelector(".crystalls__item_3").classList.remove("_bg-4");
             if (document.querySelector(".crystalls__item_3").classList.contains("_bg-5")) document.querySelector(".crystalls__item_3").classList.remove("_bg-5");
+        }
+    }
+    function check_bet() {
+        let current_bet = +sessionStorage.getItem("current-bet");
+        let current_bank = +sessionStorage.getItem("money");
+        if (current_bet > current_bank) {
+            sessionStorage.setItem("current-bet", 0);
+            document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
         }
     }
     function write_bonus_count(bonus) {
@@ -719,7 +727,7 @@
             if (current_bank - 50 > current_bet) {
                 sessionStorage.setItem("current-bet", current_bet + 50);
                 document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
-            }
+            } else no_money(".check");
         }
         if (targetElement.closest(".footer__button_bet")) if (+sessionStorage.getItem("money") >= +sessionStorage.getItem("current-bet")) {
             add_remove_className(".footer__button_bet", "_hold");
@@ -741,6 +749,7 @@
             add_remove_className(".footer__button_bet", "_hold");
             add_remove_className(".footer__controls", "_hold");
             remove_border();
+            check_bet();
         }
         if (targetElement.closest(".win__button_home")) sessionStorage.removeItem("current-bet");
         if (document.querySelector(".shop") && document.querySelector(".shop").classList.contains("_active") && !targetElement.closest(".shop__body")) document.querySelector(".shop").classList.remove("_active");
