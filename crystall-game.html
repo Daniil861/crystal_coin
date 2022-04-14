@@ -5,7 +5,7 @@
 	<title>Crystal X Coin - crystall game</title>
 	<meta charset="UTF-8">
 	<meta name="format-detection" content="telephone=no">
-	<link rel="stylesheet" href="css/style.min.css?_v=20220413163456">
+	<link rel="stylesheet" href="css/style.min.css?_v=20220414150941">
 	<link rel="shortcut icon" href="favicon.ico">
 	<!-- <meta name="robots" content="noindex, nofollow"> -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -59,7 +59,7 @@
 				<a href="index.html" class="header-game__button-home header-game__button-home_crystall"></a>
 				<div class="header-game__hearts">
 					<div class="header-game__hearts-inner">
-						<div class="header-game__count-heart">3</div>
+						<div class="header-game__count-heart">0</div>
 						<div class="header-game__icon-heart">
 							<picture><source srcset="img/icons/icon-heart.webp" type="image/webp"><img src="img/icons/icon-heart.png" alt="Icon"></picture>
 						</div>
@@ -119,16 +119,16 @@
 			</div>
 		</div>
 		<div class="wrapper__win win">
-			<div class="win__sub-text win__sub-text_1"> Level <span class="win__level">1 </span> complete!</div>
+			<div class="win__sub-text win__sub-text_1"> Level <span class="win__level">1 </span></div>
 			<div class="win__sub-text win__sub-text_2"> You win!</div>
 			<div class="win__text win__text_game">0</div>
 			<div class="win__body">
-				<button type="button" class="win__button win__button_play button">
-					<p>Play again</p>
+				<button type="button" class="win__button win__button_game button">
+					<p>Сontinue</p>
 				</button>
-				<a href="index.html" class="win__button button">
+				<button type="button" class="win__button win__button_levels button">
 					<p>Change level</p>
-				</a>
+				</button>
 			</div>
 		</div>
 		<div class="wrapper__shop shop">
@@ -180,8 +180,24 @@
 				</div>
 			</div>
 		</div>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js?_v=20220413163456"></script>
-		<script src="js/app.min.js?_v=20220413163456"></script>
+		<div class="wrapper__levels levels">
+			<div class="levels__body">
+				<button type="button" data-game-level="1" class="levels__level levels__level_one">
+					<picture><source srcset="img/icons/btn.webp" type="image/webp"><img src="img/icons/btn.png" alt="Icon"></picture>
+					<div class="levels__text">Level 1</div>
+				</button>
+				<button type="button" data-game-level="2" class="levels__level levels__level_two _not-active">
+					<picture><source srcset="img/icons/btn.webp" type="image/webp"><img src="img/icons/btn.png" alt="Icon"></picture>
+					<div class="levels__text">Level 2</div>
+				</button>
+				<button type="button" data-game-level="3" class="levels__level levels__level_three _not-active">
+					<picture><source srcset="img/icons/btn.webp" type="image/webp"><img src="img/icons/btn.png" alt="Icon"></picture>
+					<div class="levels__text">Level 3</div>
+				</button>
+			</div>
+		</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js?_v=20220414150941"></script>
+		<script src="js/app.min.js?_v=20220414150941"></script>
 </body>
 
 </html>
