@@ -123,7 +123,6 @@ h6 {
 
 body {
   touch-action: pan-x pan-y;
-  overflow: hidden;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease 0s;
@@ -137,7 +136,7 @@ body._loaded {
   visibility: visible;
 }
 body._hold {
-  pointer-events: none;
+  overflow: hidden;
 }
 
 .wrapper {
@@ -154,6 +153,7 @@ body._hold {
 }
 .wrapper_game {
   background: linear-gradient(180deg, #032153 0%, #033697 100%);
+  overflow: hidden;
 }
 .wrapper._visible {
   display: flex;
@@ -251,8 +251,15 @@ body._hold {
 
 .header {
   padding-top: 1.875rem;
+  transform: scale(0.8);
 }
-@media (min-height: 43.75em) {
+@media (min-height: 46.875em) {
+  .header {
+    padding-top: 3.125rem;
+    transform: scale(1);
+  }
+}
+@media (min-height: 53.125em) {
   .header {
     padding-top: 5rem;
   }
@@ -310,10 +317,12 @@ body._hold {
 
 .header-game {
   padding-top: 1.875rem;
+  transform: scale(0.8);
 }
 @media (min-height: 46.875em) {
   .header-game {
     padding-top: 5rem;
+    transform: scale(1);
   }
 }
 .header-game__body {
@@ -457,8 +466,13 @@ body._hold {
 .footer__body {
   display: flex;
   flex-direction: column;
-  padding-bottom: 1.625rem;
+  padding-bottom: 0.5rem;
   row-gap: 0.375rem;
+}
+@media (min-height: 46.875em) {
+  .footer__body {
+    padding-bottom: 1.375rem;
+  }
 }
 .footer__buttons {
   display: flex;
@@ -552,6 +566,7 @@ body._hold {
   display: flex;
   flex-direction: column;
   row-gap: 0.5rem;
+  padding-bottom: 0.625rem;
 }
 .block-mini-game__box {
   display: flex;
@@ -559,7 +574,17 @@ body._hold {
   justify-content: space-around;
   align-items: center;
   border-radius: 6px;
-  height: 2.1875rem;
+  height: 1.5625rem;
+}
+@media (min-height: 46.875em) {
+  .block-mini-game__box {
+    height: 1.875rem;
+  }
+}
+@media (min-height: 50em) {
+  .block-mini-game__box {
+    height: 2.1875rem;
+  }
 }
 .block-mini-game__box._selected {
   transition: all 0.3s ease 0s;
@@ -601,13 +626,19 @@ body._hold {
   column-gap: 0.3125rem;
 }
 .crystalls__item {
-  width: 6.875rem;
-  height: 6.875rem;
+  width: 5rem;
+  height: 5rem;
   flex: 0 1 33.333%;
   display: flex;
   justify-content: center;
   align-items: center;
   background: linear-gradient(360deg, #040640 -16.53%, rgba(107, 0, 26, 0) 75.49%);
+}
+@media (min-height: 44.375em) {
+  .crystalls__item {
+    width: 6.875rem;
+    height: 6.875rem;
+  }
 }
 .crystalls__item._bg-1 {
   background: linear-gradient(360deg, #ab31df -16.53%, rgba(213, 99, 255, 0) 75.49%);
@@ -731,6 +762,12 @@ body._hold {
 
 .bonuses {
   display: flex;
+  transform: scale(0.8);
+}
+@media (min-height: 43.75em) {
+  .bonuses {
+    transform: scale(1);
+  }
 }
 .bonuses__box {
   flex: 0 1 33.333%;
@@ -824,6 +861,12 @@ body._hold {
   display: flex;
   justify-content: center;
   margin-bottom: 1.25rem;
+  transform: scale(0.8);
+}
+@media (min-height: 43.75em) {
+  .footer-game {
+    transform: scale(1);
+  }
 }
 @media (min-height: 46.875em) {
   .footer-game {
@@ -874,10 +917,95 @@ body._hold {
 
 .gem {
   position: absolute;
-  width: 3.9375rem;
-  height: 3.9375rem;
+  width: 3.125rem;
+  height: 3.125rem;
   border: 1px solid transparent;
-  background-size: 100%;
+  background-size: contain;
+  background-position: 0 0;
+}
+@media (min-height: 44.375em) {
+  .gem {
+    width: 3.9375rem;
+    height: 3.9375rem;
+  }
+}
+
+.gem-heart {
+  position: absolute;
+  width: 3.125rem;
+  height: 3.125rem;
+  border: 1px solid transparent;
+  background: url("../img/icons/icon-heart.png") center/80% no-repeat, url("../img/game/bg-heart.png") center/contain no-repeat;
+}
+@media (min-height: 44.375em) {
+  .gem-heart {
+    width: 3.9375rem;
+    height: 3.9375rem;
+  }
+}
+.gem-heart._anim {
+  animation: delete-heart 0.5s ease;
+}
+
+.gem-snow {
+  position: absolute;
+  width: 3.125rem;
+  height: 3.125rem;
+  border: 1px solid transparent;
+  background: url("../img/game/bg-block.png") center/contain no-repeat;
+}
+@media (min-height: 44.375em) {
+  .gem-snow {
+    width: 3.9375rem;
+    height: 3.9375rem;
+  }
+}
+
+.levels {
+  position: absolute;
+  bottom: -50%;
+  left: 0;
+  transform: scale(0);
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  visibility: hidden;
+  width: 100%;
+  min-height: 100%;
+  z-index: 9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease 0s;
+}
+.levels._active {
+  bottom: 0;
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+.levels__body {
+  display: flex;
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.levels__level {
+  position: relative;
+}
+.levels__level img {
+  width: 6.25rem;
+}
+.levels__level._not-active {
+  pointer-events: none;
+  opacity: 0.3;
+}
+.levels__text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
 }
 
 @keyframes no-money {
@@ -911,5 +1039,11 @@ body._hold {
   100% {
     transform: translateY(-4px);
     opacity: 0.7;
+  }
+}
+@keyframes delete-heart {
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
   }
 }
