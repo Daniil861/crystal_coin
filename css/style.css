@@ -197,6 +197,7 @@ body._hold {
   font-size: 1.75rem;
   line-height: 1.2142857143;
   color: #ffffff;
+  margin-top: -0.1875rem;
 }
 
 .preloader {
@@ -211,6 +212,7 @@ body._hold {
 .preloader._hide {
   display: none;
 }
+
 .acces-preloader {
   width: 90%;
   padding: 3.125rem 1.5625rem 0.625rem;
@@ -621,6 +623,7 @@ body._hold {
   background-color: transparent;
   border-radius: 0%;
 }
+
 .crystalls {
   display: flex;
   column-gap: 0.3125rem;
@@ -655,6 +658,7 @@ body._hold {
 .crystalls__item._bg-5 {
   background: linear-gradient(360deg, #c2c2c2 -16.53%, rgba(107, 0, 26, 0) 75.49%);
 }
+
 .win {
   position: absolute;
   top: -200%;
@@ -748,6 +752,7 @@ body._hold {
     padding-bottom: 0.9375rem;
   }
 }
+
 .block-game__field {
   display: flex;
   margin: 0 auto;
@@ -794,7 +799,7 @@ body._hold {
   align-items: center;
 }
 .bonuses__bomb._anim img {
-  animation: scale_image 1s ease infinite;
+  animation: scale_image 1s cubic-bezier(0.6, 0.04, 0.98, 0.335) infinite;
 }
 .bonuses__count {
   display: flex;
@@ -824,7 +829,7 @@ body._hold {
   align-items: center;
 }
 .bonuses__anvil._anim img {
-  animation: scale_image 1s ease infinite;
+  animation: scale_image 1s cubic-bezier(0.6, 0.04, 0.98, 0.335) infinite;
 }
 .bonuses__circle {
   height: 100%;
@@ -833,7 +838,7 @@ body._hold {
   align-items: center;
 }
 .bonuses__circle._anim img {
-  animation: scale_image 1s ease infinite;
+  animation: scale_image 1s cubic-bezier(0.6, 0.04, 0.98, 0.335) infinite;
 }
 .bonuses__button {
   background: url("../img/icons/btn.png") center/contain no-repeat;
@@ -857,6 +862,7 @@ body._hold {
   line-height: 1.2;
   color: #ffffff;
 }
+
 .footer-game {
   display: flex;
   justify-content: center;
@@ -1037,7 +1043,7 @@ body._hold {
     transform: translateY(0px);
   }
   100% {
-    transform: translateY(-4px);
+    transform: translateY(7px);
     opacity: 0.7;
   }
 }

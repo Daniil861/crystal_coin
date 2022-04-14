@@ -35,11 +35,6 @@
         sessionStorage.setItem("money", 1e3);
         document.querySelector(".check").textContent = sessionStorage.getItem("money");
     }
-    if (document.querySelector(".game")) {
-        write_bonus_count("bomb");
-        write_bonus_count("anvil");
-        write_bonus_count("circle");
-    }
     if (document.querySelector(".mini-game")) {
         document.querySelector(".footer__coins").textContent = 0;
         sessionStorage.setItem("current-bet", 0);
@@ -245,6 +240,9 @@
     document.addEventListener("touchend", handleTouchEnd, false);
     document.addEventListener("touchmove", handleTouchMove, false);
     if (document.querySelector(".game")) {
+        write_bonus_count("bomb");
+        write_bonus_count("anvil");
+        write_bonus_count("circle");
         if (!sessionStorage.getItem("active-game-level")) sessionStorage.setItem("active-game-level", 1); else if (2 == +sessionStorage.getItem("active-game-level")) document.querySelector(".footer-game__lable").textContent = "Level 2"; else if (3 == +sessionStorage.getItem("active-game-level")) document.querySelector(".footer-game__lable").textContent = "Level 3";
         if (sessionStorage.getItem("game-level-2")) document.querySelector(".levels__level_two").classList.remove("_not-active");
         if (sessionStorage.getItem("game-level-3")) document.querySelector(".levels__level_three").classList.remove("_not-active");
