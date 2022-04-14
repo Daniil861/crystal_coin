@@ -716,7 +716,7 @@
         if (targetElement.closest(".footer__plus")) {
             let current_bet = +sessionStorage.getItem("current-bet");
             let current_bank = +sessionStorage.getItem("money");
-            if (current_bank > current_bet) {
+            if (current_bank - 50 > current_bet) {
                 sessionStorage.setItem("current-bet", current_bet + 50);
                 document.querySelector(".footer__coins").textContent = sessionStorage.getItem("current-bet");
             }
