@@ -355,6 +355,9 @@ body._hold {
   display: flex;
   justify-content: flex-end;
 }
+.header-game__hearts._hide {
+  opacity: 0;
+}
 .header-game__hearts-inner {
   display: flex;
   align-items: center;
@@ -766,12 +769,23 @@ body._hold {
 }
 
 .bonuses {
-  display: flex;
   transform: scale(0.8);
+  display: flex;
 }
-@media (min-height: 43.75em) {
+@media (min-height: 700px) {
   .bonuses {
     transform: scale(1);
+  }
+}
+.bonuses_shop {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+@media (min-height: 700px) {
+  .bonuses_shop {
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 .bonuses__box {
@@ -914,13 +928,6 @@ body._hold {
 .shop__body {
   position: relative;
 }
-.shop__bonuses {
-  position: absolute;
-  top: 52%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
 .gem {
   position: absolute;
   width: 3.125rem;
